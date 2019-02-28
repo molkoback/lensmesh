@@ -1,1 +1,1 @@
-from lensmesh.lens import PlanoConvex
+from lensmesh.lens import LensParamException, Lens, PlanoConvex
