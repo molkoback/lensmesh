@@ -4,14 +4,15 @@ class LensParamException(Exception):
 	pass
 
 class Lens:
-	def __init__(self, D, R1, R2, Tc, accuracy=6):
+	def __init__(self, D, R1, R2, Tc, **kwargs):
 		if D <= 0.0 or Tc <= 0.0:
 			raise LensParamException()
 		self.D = D
 		self.R1 = R1
 		self.R2 = R2
 		self.Tc = Tc
-		self.accuracy = accuracy
+		self.accuracy = kwargs.get("accuracy", 5)
+		self.engine = kwargs.get("engine", "scad")
 		self.mesh = self._create()
 	
 	def _cylinder(self, radius, height):
@@ -36,22 +37,24 @@ class Lens:
 			sphere = self._sphere(abs(self.R1))
 			if self.R1 > 0.0:
 				sphere.apply_translation([0, 0, self.R1-self.Tc/2])
-				lens = lens.intersection(sphere)
+				lens = lens.intersection(sphere, engine=self.engine)
 			else:
 				sphere.apply_translation([0, 0, self.R1])
-				lens = lens.difference(sphere)
+				lens = lens.difference(sphere, engine=self.engine)
 		
 		# Top side
 		if self.R2 != 0.0 and self.R2 != float("inf"):
 			sphere = self._sphere(abs(self.R2))
 			if self.R2 < 0.0:
 				sphere.apply_translation([0, 0, self.R2+self.Tc/2])
-				lens = lens.intersection(sphere)
+				lens = lens.intersection(sphere, engine=self.engine)
 			else:
 				sphere.apply_translation([0, 0, self.R2])
-				lens = lens.difference(sphere)
-		
+				lens = lens.difference(sphere, engine=self.engine)
 		return lens
+	
+	def show(self):
+		self.mesh.show()
 	
 	def save(self, fn):
 		self.mesh.export(fn)
